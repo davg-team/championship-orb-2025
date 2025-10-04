@@ -1,0 +1,18 @@
+title: Фронтенд
+description: Davg-team
+meta:
+  title: Метаданные
+  noIndex: true
+links:
+  - title: Описание
+    description: Описание фронтенда
+    href: description.md
+  - title: Структура
+    description: Описание структуры
+    href: structure.md
+  - title: Стили
+    description: Описание стилей
+    href: styles.md
+  - title: Компоненты
+    description: Описание компонентов
+    href: components.md

@@ -1,0 +1,30 @@
+title: Бэкенд
+description: Davg-team
+meta:
+  title: Метаданные
+  noIndex: true
+links:
+  - title: Введение
+    description: Описание
+    href: backend_index_.md
+  - title: Структура данных
+    description: Описание
+    href: data.md
+  - title: Организации
+    description: Описание
+    href: organizations/index.md
+  - title: События
+    description: Описание
+    href: events/index.md
+  - title: Сервис пользователей
+    description: Описание
+    href: user-service/index.md
+  - title: Отчеты
+    description: Описание
+    href: reports/index.md
+  - title: Команды
+    description: Описание
+    href: teams/index.md
+  - title: Аналитика
+    description: Описание
+    href: analytics/index.md

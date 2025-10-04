@@ -1,0 +1,8 @@
+title: Сервис пользователей
+href: user-service_index.yaml
+
+items:
+  - name: Введение
+    href: index.md
+  - name: Описание
+    href: description.md

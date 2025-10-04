@@ -1,0 +1,5 @@
+allowHTML: true
+lang: 'ru'
+langs: ['ru']
+search:
+  provider: local

@@ -1,0 +1,12 @@
+# Шаблон для файла с unseal keys
+# Скопируйте этот файл в .openbao-keys и замените на ваши настоящие ключи
+# 
+# После инициализации OpenBao (docker exec -it openbao bao operator init)
+# вы получите 5 ключей. Добавьте любые 3 из них сюда (по одному на строку)
+#
+# ВАЖНО: Файл .openbao-keys уже добавлен в .gitignore
+# НЕ УДАЛЯЙТЕ ЕГО ИЗ .gitignore!
+
+your-unseal-key-1-here
+your-unseal-key-2-here
+your-unseal-key-3-here

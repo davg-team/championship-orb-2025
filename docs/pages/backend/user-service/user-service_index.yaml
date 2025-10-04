@@ -1,0 +1,12 @@
+title: Микросервис 2
+description: Davg-team
+meta:
+  title: Метаданные
+  noIndex: true
+links:
+  - title: Введение
+    description: Описание
+    href: index.md
+  # - title: Описание
+  #   description: Описание
+  #   href: description.md

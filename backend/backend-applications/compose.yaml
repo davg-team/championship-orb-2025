@@ -1,0 +1,28 @@
+# !!!FOR TESTING PURPOSES ONLY!!!
+
+services:
+  server:
+    container_name: backend-applications
+    build:
+      context: .
+    ports:
+      - 8080:8080
+    env_file:
+      - .env
+    depends_on:
+      - postgres
+
+  postgres:
+    image: postgres
+    container_name: postgres
+    ports:
+      - 5432:5432
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: passwordXD_1234
+      POSTGRES_DB: local
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+volumes:
+  pgdata:

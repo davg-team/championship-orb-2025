@@ -1,0 +1,82 @@
+title: Davg-team documentation
+href: pages/index.yaml
+
+analytics:
+  text: "Мы используем файлы cookie, чтобы вы могли наилучшим образом пользоваться нашим веб-сайтом. Если вы продолжаете использовать наш веб-сайт, мы полагаем, что вы согласны с таким использованием"
+  buttons:
+    accept:
+      text: "Ок"
+      theme: "accent"
+      size: "xl"
+
+navigation:
+  header:
+    rightItems:
+      - type: "controls"
+
+items:
+  - name: Введение
+    href: pages/description.md
+  - name: Описание
+    href: pages/introduction.md
+  - name: Архитектура
+    href: pages/architecture.md
+  - name: Фронтенд
+    expanded: false
+    href: pages/frontend/frontend_index_.md
+    include:
+      mode: link
+      path: pages/frontend/toc.yaml
+  - name: Бэкенд
+    expanded: false
+    items:
+      - name: Введение
+        href: pages/backend/backend_index_.md
+      - name: Структура данных
+        href: pages/backend/data.md
+
+      # - name: Сервис заявок (backend-applications)
+      #   href: pages/backend/backend-applications/index.md
+      #   expanded: false
+      #   items:
+      #     - name: Описание сервиса
+      #       href: pages/backend/backend-applications/index.md
+      #     - name: Архитектура и технологии
+      #       href: pages/backend/backend-applications/architecture.md
+      #     - name: API документация
+      #       href: pages/backend/backend-applications/api.md
+      #     - name: Модели данных
+      #       href: pages/backend/backend-applications/data-models.md
+      #     - name: Аутентификация и авторизация
+      #       href: pages/backend/backend-applications/auth.md
+      #     - name: Интеграции и внешние сервисы
+      #       href: pages/backend/backend-applications/integrations.md
+      #     - name: Развертывание и конфигурация
+      #       href: pages/backend/backend-applications/deployment.md
+      #     - name: Примеры использования
+      #       href: pages/backend/backend-applications/examples.md
+
+      # - name: Сервис пользователей
+      #   href: pages/backend/user-service/index.md
+      #   expanded: false
+      #   items:
+      #     - name: Описание сервиса
+      #       href: pages/backend/user-service/description.md
+      #     - name: Архитектура и технологии
+      #       href: pages/backend/user-service/architecture.md
+      #     - name: Модели данных
+      #       href: pages/backend/user-service/data-models.md
+      #     - name: Работа с JWT токенами
+      #       href: pages/backend/user-service/jwt.md
+      #     - name: Модуль CryptoManager
+      #       href: pages/backend/user-service/crypto-manager.md
+      #     - name: Функциональные возможности
+      #       href: pages/backend/user-service/functional.md
+      #     - name: Часто задаваемые вопросы (FAQ)
+      #       href: pages/backend/user-service/faq.md
+      # - name: openapi
+      #   include:
+      #     path: openapi_user-service
+      #     includers:
+      #       - name: openapi
+      #         input: openapi.json

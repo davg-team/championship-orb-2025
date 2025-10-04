@@ -1,0 +1,9 @@
+title: Документация проекта
+description: Davg-team
+meta:
+  title: Метаданные
+  noIndex: true
+links:
+  - title: Введение
+    description: Описание проекта
+    href: introduction.md

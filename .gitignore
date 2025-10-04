@@ -1,0 +1,25 @@
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Documentation build output
+output-folder/
+build/
+dist/
+.aider*
+
+# OpenBao secrets - NEVER commit these files!
+openbao/.openbao-keys
+openbao/data/*
+!openbao/data/.gitkeep
+
+# Docker Secrets - NEVER commit these files!
+secrets/*.txt
+!secrets/.gitkeep

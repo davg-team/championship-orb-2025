@@ -1,0 +1,12 @@
+title: Фронтенд
+href: frontend_index.yaml
+
+items:
+  - name: Описание
+    href: description.md
+  - name: Структура
+    href: structure.md
+  - name: Стили
+    href: styles.md
+  - name: Компоненты
+    href: components.md

@@ -1,0 +1,186 @@
+openapi: 3.0.0
+info:
+  title: Notifications API
+  version: 1.0.0
+  description: API для управления уведомлениями и отправки email сообщений
+
+servers:
+  - url: http://localhost:8080/api
+
+paths:
+  /notifications/send:
+    post:
+      summary: Отправить сообщение на email
+      parameters:
+        - name: to
+          in: query
+          description: Email получателя (или "admin" для отправки админу)
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SendSMTP"
+      responses:
+        "200":
+          description: Успешная отправка
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+
+  /notifications:
+    get:
+      summary: Получить список уведомлений
+      parameters:
+        - name: user_id
+          in: query
+          description: Получить уведомления только для конкретного пользователя
+          required: false
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Список уведомлений
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Notification"
+    post:
+      summary: Создать новое уведомление
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateNotification"
+      responses:
+        "200":
+          description: Уведомление создано
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  id:
+                    type: string
+                    example: "uuid-1234"
+
+  /notifications/{id}:
+    get:
+      summary: Получить уведомление по ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: ID уведомления
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Уведомление найдено
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  data:
+                    $ref: "#/components/schemas/Notification"
+    delete:
+      summary: Удалить уведомление по ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: ID уведомления
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Успешное удаление
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+
+components:
+  schemas:
+    SendSMTP:
+      type: object
+      properties:
+        subject:
+          type: string
+          example: "pu-pu"
+        body:
+          type: string
+          example: "body-body-bodys"
+    CreateNotification:
+      type: object
+      properties:
+        user_id:
+          type: string
+          example: "10101"
+        subject:
+          type: string
+          example: "pu-pu"
+        body:
+          type: string
+          example: "body-body-bodys"
+        custom:
+          type: object
+          additionalProperties:
+            type: string
+          example:
+            button: "accept button"
+        is_new:
+          type: boolean
+          example: true
+    Notification:
+      type: object
+      properties:
+        id:
+          type: string
+          example: "uuid-1234"
+        user_id:
+          type: string
+          example: "10101"
+        subject:
+          type: string
+          example: "pu-pu"
+        body:
+          type: string
+          example: "body-body-bodys"
+        custom:
+          type: object
+          additionalProperties:
+            type: string
+          example:
+            button: "accept button"
+        is_new:
+          type: boolean
+          example: true
