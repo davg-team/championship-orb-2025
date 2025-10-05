@@ -98,7 +98,11 @@ func (s *ApplicationsService) CreateApplication(
 	subject := "Новая заявка от пользователя " + tokenPayload.Name
 	body := fmt.Sprintf("Пользователь %s (%s) создал заявку с комментарием: %s", tokenPayload.Name, tokenPayload.Email, application.UserComment)
 	err := SendEmail(
-		"admin", subject, body,
+		[]string{
+			"b031850b-fb64-41dd-a761-421e6f4f1612",
+			"6e865da5-59ad-4a1f-a3c9-49b5b8a63c81",
+			"8c36763f-84f1-4c84-a173-38564be4089d",
+		}, subject, body,
 	)
 
 	if err != nil {
@@ -145,7 +149,7 @@ func (s *ApplicationsService) ApproveApplication(
 	}
 
 	err = SendEmail(
-		application.UserMetainfo.Email, "Заявка одобрена", "Ваша заявка с ID "+applicationID+" одобрена",
+		[]string{application.UserMetainfo.ID}, "Заявка одобрена", "Ваша заявка с ID "+applicationID+" одобрена",
 	)
 	if err != nil {
 		err = customerrors.New(err.Error(), customerrors.ErrBadRequest)
@@ -180,7 +184,7 @@ func (s *ApplicationsService) DenyApplication(ctx context.Context, applicationID
 	}
 
 	err = SendEmail(
-		application.UserMetainfo.Email, "Заявка отклонена", "Ваша заявка c ID "+applicationID+" отклонена",
+		[]string{application.UserMetainfo.ID}, "Заявка отклонена", "Ваша заявка c ID "+applicationID+" отклонена",
 	)
 	if err != nil {
 		err = customerrors.New(err.Error(), customerrors.ErrBadRequest)

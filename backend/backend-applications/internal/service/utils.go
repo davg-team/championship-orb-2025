@@ -342,10 +342,21 @@ func isNotFoundError(err error) bool {
 		strings.Contains(err.Error(), "not found"))
 }
 
-func SendEmail(to string, subject string, body string) error {
-	url := config.Config().Notifications.URL + "/send?to=" + to
+func SendEmail(to []string, subject string, body string) error {
+	url := config.Config().Notifications.URL + "/smartsend"
 
-	req, err := http.NewRequest("POST", url, bytes.NewBuffer(fmt.Appendf(nil, `{"subject": "%s", "body": "%s"}`, subject, body)))
+	type request struct {
+		UserIDs []string `json:"user_ids"`
+		Title   string   `json:"title"`
+		Body    string   `json:"body"`
+	}
+
+	jsonBody, err := json.Marshal(request{UserIDs: to, Title: subject, Body: body})
+	if err != nil {
+		return err
+	}
+
+	req, err := http.NewRequest("POST", url, bytes.NewBuffer(jsonBody))
 	if err != nil {
 		return err
 	}
