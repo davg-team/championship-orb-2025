@@ -5,19 +5,15 @@ import (
 	"github.com/joho/godotenv"
 )
 
-const (
-	UserRoleAdmin  = "admin"
-	UserRoleEditor = "editor"
-)
-
 var cfg config
 
 type config struct {
-	SMTP    smtpConfig
-	Admin   adminConfig
-	Server  serverConfig
-	Storage storageConfig
-	Rabbit  rabbitMQConfig
+	SMTP     smtpConfig
+	Admin    adminConfig
+	Server   serverConfig
+	Storage  storageConfig
+	Rabbit   rabbitMQConfig
+	Telegram telegramConfig
 }
 
 type smtpConfig struct {
@@ -46,6 +42,10 @@ type rabbitMQConfig struct {
 
 type serverConfig struct {
 	Port string `env:"PORT" envDefault:"8080"`
+}
+
+type telegramConfig struct {
+	Token string `env:"TELEGRAM_BOT_TOKEN"`
 }
 
 func Config() config {

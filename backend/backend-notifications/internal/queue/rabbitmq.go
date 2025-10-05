@@ -1,7 +1,8 @@
 package queue
 
 import (
-	"log"
+	"fmt"
+	"log/slog"
 
 	amqp "github.com/rabbitmq/amqp091-go"
 )
@@ -54,23 +55,38 @@ func (r *RabbitMQ) Publish(body []byte) error {
 func (r *RabbitMQ) Consume(handler func([]byte) error) error {
 	msgs, err := r.channel.Consume(
 		r.queue.Name,
-		"",
-		true,  // auto-ack
+		"",    // consumer tag
+		false, // auto-ack
 		false, // exclusive
 		false, // no-local
 		false, // no-wait
-		nil,
+		nil,   // args
 	)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to register consumer: %w", err)
 	}
 
-	go func() {
-		for d := range msgs {
-			if err := handler(d.Body); err != nil {
-				log.Printf("failed to handle message: %v", err)
-			}
+	slog.Info("Started consuming messages from queue", slog.String("queue", r.queue.Name))
+
+	// Бесконечный цикл обработки сообщений
+	for msg := range msgs {
+		slog.Debug("Received message", slog.String("queue", r.queue.Name))
+
+		if err := handler(msg.Body); err != nil {
+			slog.Error("Failed to process message", "error", err)
+			// Возвращаем в очередь для повторной обработки
+			msg.Nack(false, true)
+		} else {
+			// Подтверждаем успешную обработку
+			msg.Ack(false)
 		}
-	}()
+	}
+
+	// Если цикл завершился - канал закрыт
+	slog.Warn("Message channel closed")
 	return nil
+}
+
+func (r *RabbitMQ) Close() error {
+	return r.conn.Close()
 }

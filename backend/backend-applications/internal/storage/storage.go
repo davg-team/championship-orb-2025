@@ -18,7 +18,7 @@ func New() *Storage {
 
 	db, err := gorm.Open(postgres.Open(
 		fmt.Sprintf(
-			"host=%s user=%s password=%s dbname=%s port=%s",
+			"host=%s user=%s password=%s dbname=%s port=%s sslmode=disable",
 			cfg.DBHost,
 			cfg.DBUser,
 			cfg.DBPassword,

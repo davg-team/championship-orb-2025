@@ -35,6 +35,40 @@ const data = [
 ];
 
 const AuditTab = () => {
+  // async function getPolicies() {
+  //   try {
+  //     const url = "https://orencode.davg-team.ru/v1/sys/audits?list=true";
+  //     const response = await fetch(url, {
+  //       method: "GET",
+  //       headers: {
+  //         "X-Vault-Token": "s.YyHedBSgIDwxHRfwORScJbk7",
+  //       },
+  //     });
+  //     if (response.ok) {
+  //       const data = await response.json();
+  //       setAudits(data.data.keys);
+  //     } else {
+  //       toaster.add({
+  //         theme: "danger",
+  //         title: "Произошла ошибка при получении политик",
+  //         name: "",
+  //         autoHiding: 3000,
+  //       });
+  //     }
+  //   } catch {
+  //     toaster.add({
+  //       theme: "danger",
+  //       title: "Произошла ошибка при получении политик",
+  //       name: "",
+  //       autoHiding: 3000,
+  //     });
+  //   }
+  // }
+  //
+  // useEffect(() => {
+  //   getPolicies();
+  // });
+
   return (
     <Card view="outlined" spacing={{ p: "4" }}>
       <Flex direction={"column"} gap="4">

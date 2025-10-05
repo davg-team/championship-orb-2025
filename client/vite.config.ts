@@ -4,15 +4,10 @@ import react from "@vitejs/plugin-react";
 // @ts-expect-error process is a nodejs global
 const host = process.env.TAURI_DEV_HOST;
 
-// https://vite.dev/config/
 export default defineConfig(async () => ({
   plugins: [react()],
 
-  // Vite options tailored for Tauri development and only applied in `tauri dev` or `tauri build`
-  //
-  // 1. prevent Vite from obscuring rust errors
   clearScreen: false,
-  // 2. tauri expects a fixed port, fail if that port is not available
   server: {
     port: 1420,
     strictPort: true,
@@ -25,18 +20,18 @@ export default defineConfig(async () => ({
         }
       : undefined,
     watch: {
-      // 3. tell Vite to ignore watching `src-tauri`
       ignored: ["**/src-tauri/**"],
     },
-    proxy: {
-      "/api/auth/": {
-        target: "https://orencode.davg-team.ru/auth/",
-        changeOrigin: true,
-        secure: false,
-        rewrite: (path: string) => path.replace(/^\/api\/auth/, ""),
-      },
-    },
   },
+
+  // Настройки для работы с Node.js модулями в Tauri
+  define: {
+    global: "globalThis",
+    // Polyfills для Node.js модулей
+    "process.env": {},
+    "process.platform": '"browser"',
+  },
+
   resolve: {
     alias: {
       app: "/src/app/",
@@ -46,7 +41,22 @@ export default defineConfig(async () => ({
       widgets: "/src/widgets/",
       entities: "entities",
       "~@diplodoc": "/node_modules/@diplodoc/",
-      url: "url",
+    },
+  },
+
+  // Оптимизация зависимостей для предотвращения проблем с Node.js модулями
+  // optimizeDeps: {
+  //   exclude: ["@diplodoc/transform"],
+  // },
+
+  build: {
+    // Увеличиваем лимит chunk size для больших зависимостей
+    chunkSizeWarningLimit: 1000,
+    rollupOptions: {
+      external: (id) => {
+        // Externalize Node.js built-ins для предотвращения ошибок
+        return id.startsWith("node:") || ["path", "url", "source-map-js", "process"].includes(id);
+      },
     },
   },
 }));

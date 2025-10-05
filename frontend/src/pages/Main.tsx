@@ -1,4 +1,11 @@
 import {
+  CircleCheck,
+  ClockArrowRotateLeft,
+  Gear,
+  Moon,
+  Sun,
+} from "@gravity-ui/icons";
+import {
   Button,
   Container,
   Flex,
@@ -10,23 +17,20 @@ import {
   TabProvider,
   Text,
 } from "@gravity-ui/uikit";
-import {
-  CircleCheck,
-  ClockArrowRotateLeft,
-  Gear,
-  Moon,
-  Sun,
-} from "@gravity-ui/icons";
-import { useState } from "react";
-import AuditTab from "features/components/pages/main/AuditTab";
-import AgreementTab from "features/components/pages/main/AreegmentTab";
-import AdminTab from "features/components/pages/main/AdminTab";
 import useThemeStore from "app/store/theme";
+import InsideAPopup from "features/components/Notifications";
+import AdminTab from "features/components/pages/main/AdminTab";
+import AgreementTab from "features/components/pages/main/AreegmentTab";
+import AuditTab from "features/components/pages/main/AuditTab";
+import useNotifications from "features/hooks/useNotifications";
+import { useState } from "react";
 
 const Main = () => {
   const [activeTab, setActiveTab] = useState("agreement");
   const theme = useThemeStore((state) => state.theme);
   const toggleTheme = useThemeStore((state) => state.toggleTheme);
+  useNotifications();
+
   return (
     <Container maxWidth="xxl">
       <Flex direction="column" width={"100%"} spacing={{ px: "2", py: "6" }}>
@@ -40,6 +44,7 @@ const Main = () => {
             <Label theme="clear" size="m">
               Администратор
             </Label>
+            <InsideAPopup />
             <Button view="outlined-action" onClick={toggleTheme}>
               <Icon data={theme === "light" ? Moon : Sun} />
             </Button>

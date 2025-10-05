@@ -1,0 +1,368 @@
+openapi: 3.0.0
+info:
+  title: Backend Applications API
+  version: 1.0.0
+servers:
+  - url: http://localhost:8080/api
+paths:
+  /applications:
+    get:
+      summary: Get all applications
+      operationId: getApplications
+      security:
+        - bearerAuth: []
+      tags:
+        - Applications
+      parameters:
+        - name: status
+          in: query
+          description: Filter applications by status
+          schema:
+            type: string
+            enum: ["pending", "approved", "denied"]
+        - name: user_id
+          in: query
+          description: Filter applications by user ID
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ApplicationModel'
+    post:
+      summary: Create a new application
+      operationId: createApplication
+      security:
+        - bearerAuth: []
+      tags:
+        - Applications
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ApplicationRequest'
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                    description: ID of the created application
+        '400':
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /applications/my:
+    get:
+      summary: Get my applications
+      operationId: getMyApplications
+      security:
+        - bearerAuth: []
+      tags:
+        - Applications
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ApplicationModel'
+        '404':
+          description: User not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /applications/{id}:
+    get:
+      summary: Get an application by ID
+      operationId: getApplication
+      security:
+        - bearerAuth: []
+      tags:
+        - Applications
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: ID of the application
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApplicationModel'
+        '404':
+          description: Application not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    delete:
+      summary: Delete an application by ID
+      operationId: deleteApplication
+      security:
+        - bearerAuth: []
+      tags:
+        - Applications
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: ID of the application
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: Success message
+        '404':
+          description: Application not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /applications/{id}/approve:
+    post:
+      summary: Approve an application by ID
+      operationId: approveApplication
+      description: Принятие заявки админом. Выбрать один из approve_type (new_policy, existing_policy, personal_policy) и **в зависимости от этого передать нужное поле в json**
+      security:
+        - bearerAuth: []
+      tags:
+        - Applications
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: ID of the application
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ApproveApplicationRequest'
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: Success message
+        '400':
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Application not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /applications/{id}/deny:
+    post:
+      summary: Deny an application by ID
+      operationId: denyApplication
+      security:
+        - bearerAuth: []
+      tags:
+        - Applications
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: ID of the application
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DenyApplicationRequest'
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: Success message
+        '400':
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Application not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+components:
+  securitySchemes:
+    Bearer:
+      type: http
+      scheme: bearer
+  schemas:
+    Error:
+      type: object
+      properties:
+        message:
+          type: string
+          description: Error message
+        status:
+          type: integer
+          description: Error status code
+        details:
+          type: object
+          description: Additional details about the error
+    ApplicationModel:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: ID of the application
+        user_metainfo:
+          type: object
+          description: User metadata about the application
+          properties:
+            id:
+              type: string
+              format: uuid
+              description: ID of the user metadata
+            name:
+              type: string
+              description: Name of the user
+            email:
+              type: string
+              description: Email of the user
+        status:
+          type: string
+          description: Status of the application
+        created_at:
+          type: string
+          format: date-time
+          description: Date and time when the application was created
+        updated_at:
+          type: string
+          format: date-time
+          description: Date and time when the application was last updated
+        ttl:
+          type: string
+          description: Time to live of the application
+        user_request:
+          type: string
+          description: User request for the application
+        user_comment:
+          type: string
+          description: User comment for the application
+        admin_comment:
+          type: string
+          description: Comment left by the admin when approving the application
+      example:
+        id: "uuid"
+        user_metainfo:
+          id: "user_uuid"
+          name: John Doe
+          email: 1W6r0@example.com
+        status: pending
+        created_at: 2022-01-01T00:00:00Z
+        updated_at: 2022-01-01T00:00:00Z
+        ttl: 24h
+        user_request: Мне нужен доступ к базе данных production
+        user_comment: Нужен доступ для фикса
+        admin_comment: Доступ разрешен
+    ApplicationRequest:
+      type: object
+      properties:
+        ttl:
+          type: string
+          description: Time to live of the application
+        user_request:
+          type: string
+          description: User request for the application
+        user_comment:
+          type: string
+          description: User comment for the application
+      example:
+        ttl: 24h
+        user_request: Мне нужен доступ к базе данных production
+        user_comment: Нужен доступ для фикса
+    ApproveApplicationRequest:
+      type: object
+      properties:
+        admin_comment:
+          type: string
+          description: Comment left by the admin when approving the application
+        approve_type:
+          type: string
+          description: Type of approval
+          enum: [existing_policy, new_policy, personal_policy]
+        exisitng_policies:
+          type: array
+          items:
+            type: string
+          description: Existing policy for the application
+        new_policy:
+          type: object
+          description: New policy for the application
+          properties:
+            title:
+              type: string
+              description: Title of the policy
+            secrets:
+              type: array
+              items:
+                type: string
+                description: Secrets for the policy
+        personal_policy_secrets:
+          type: array
+          items:
+            type: string
+            description: Personal policy secrets for the application
+
+    DenyApplicationRequest:
+      type: object
+      properties:
+        admin_comment:
+          type: string
+          description: Comment left by the admin when denying the application

@@ -3,7 +3,6 @@ package application
 import (
 	"log/slog"
 
-	"github.com/davg/backend-notifications/internal/config"
 	"github.com/davg/backend-notifications/internal/queue"
 	"github.com/davg/backend-notifications/internal/server"
 	"github.com/davg/backend-notifications/internal/service"
@@ -13,32 +12,26 @@ import (
 
 type Application struct {
 	server *server.Server
+	queue  *queue.RabbitMQ
 }
 
-func New(log *slog.Logger) *Application {
-	cfg := config.Config().Rabbit
-
+func New(log *slog.Logger, queue *queue.RabbitMQ) *Application {
 	storage := storage.New()
 
-	rabbit, err := queue.NewRabbitMQ(cfg.Url, "notifications")
-	if err != nil {
-		log.Error("Failed to connect to RabbitMQ", "op", "application.New", "err", err)
-		panic(err)
-	}
-
-	service := service.NewService(log, storage, rabbit)
+	service := service.NewService(log, storage, queue)
 
 	server := server.New(service)
+
 	return &Application{
 		server: server,
 	}
 }
 
-func (a *Application) Run() {
+func (a *Application) Start() {
 	a.server.Start()
 }
 
-func (a *Application) Stop() {
+func (a *Application) GracefulStop() {
 	a.server.Stop()
 }
 

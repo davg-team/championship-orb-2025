@@ -19,7 +19,7 @@ count=0
 while IFS= read -r key && [ $count -lt 3 ]; do
     if [ -n "$key" ]; then
         echo "Используем ключ $(($count + 1))..."
-        docker exec -it openbao bao operator unseal "$key"
+        docker exec -it openbao bao -address http://127.0.0.1:8200 operator unseal "$key"
         count=$((count + 1))
     fi
 done < "$KEYS_FILE"

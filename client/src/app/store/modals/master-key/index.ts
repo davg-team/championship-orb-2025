@@ -4,10 +4,10 @@ import { ModalStore } from "../types";
 const useMasterKeyModalStore = create<ModalStore>()((set, get) => ({
   isOpen: false,
   toggleIsOpen: () => {
-    set({ isOpen: !(get() as ModalStore).isOpen });
+    set({ isOpen: !get().isOpen });
   },
   setIsOpen: (isOpen: boolean) => {
-    set({ isOpen });
+    set({ ...get(), isOpen });
   },
 }));
 

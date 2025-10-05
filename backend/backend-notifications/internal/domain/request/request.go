@@ -10,5 +10,11 @@ type CreateNotification struct {
 	Subject string            `json:"subject"`
 	Body    string            `json:"body"`
 	Custom  map[string]string `json:"custom"`
-	IsNew   bool              `json:"is_new"`
+}
+
+type SmartSend struct {
+	UserIDs []string          `json:"user_ids"`
+	Title   string            `json:"title"`
+	Body    string            `json:"body"`
+	Custom  map[string]string `json:"custom"`
 }

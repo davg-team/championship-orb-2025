@@ -16,6 +16,7 @@ type Service interface {
 	CreateNotification(ctx context.Context, notification request.CreateNotification) (string, error)
 	DeleteNotification(ctx context.Context, id string) error
 	GetNotificationsByID(ctx context.Context, user_id string) ([]models.Notification, error)
+	SmartSend(ctx context.Context, req request.SmartSend) error
 }
 
 type Router struct {
@@ -116,6 +117,19 @@ func (r *Router) DeleteNotification(ctx *gin.Context) {
 	ctx.JSON(200, gin.H{"status": "success"})
 }
 
+func (r *Router) SmartSend(ctx *gin.Context) {
+	var req request.SmartSend
+	if err := ctx.ShouldBindJSON(&req); err != nil {
+		HandleError(ctx, err)
+		return
+	}
+	if err := r.service.SmartSend(ctx, req); err != nil {
+		HandleError(ctx, err)
+		return
+	}
+	ctx.JSON(200, gin.H{"status": "success"})
+}
+
 func (r *Router) init() {
 	group := r.router.Group("/notifications")
 
@@ -125,4 +139,6 @@ func (r *Router) init() {
 	group.GET("/:id", r.Notification)
 	group.POST("/", r.CreateNotification)
 	group.DELETE("/:id", r.DeleteNotification)
+
+	group.POST("/smartsend", r.SmartSend)
 }

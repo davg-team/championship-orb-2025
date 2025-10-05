@@ -17,7 +17,7 @@
     "@gravity-ui/markdown-editor": "^15.20.0",
     "@tauri-apps/api": "^2",
     "@tauri-apps/plugin-autostart": "^2.5.0",
-    "@tauri-apps/plugin-opener": "^2",
+    "@tauri-apps/plugin-opener": "^2.5.0",
     "@tauri-apps/plugin-process": "^2.3.0",
     "@tauri-apps/plugin-shell": "^2.3.1",
     "react": "^18.2.0",
@@ -28,7 +28,7 @@
   },
   "devDependencies": {
     "@gravity-ui/components": "^4.12.0",
-    "@gravity-ui/date-components": "^3.1.0",
+    "@gravity-ui/date-components": "^3.3.2",
     "@gravity-ui/dynamic-forms": "^5.9.0",
     "@gravity-ui/uikit": "^7.23.0",
     "@tauri-apps/cli": "^2",

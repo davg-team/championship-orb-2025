@@ -38,9 +38,6 @@ func (s *Storage) GetNotificationsByID(ctx context.Context, user_id string) ([]m
 	if err := s.db.Model(&models.Notification{}).Where("user_id = ?", user_id).Find(&notifications).Error; err != nil {
 		return nil, err
 	}
-	if len(notifications) == 0 {
-		return nil, nil
-	}
 	return notifications, nil
 }
 

@@ -33,7 +33,7 @@ func (s *Storage) Applications(ctx context.Context, status, userID string) ([]mo
 func (s *Storage) Application(ctx context.Context, id string) (*models.ApplicationModel, error) {
 	var application models.ApplicationModel
 
-	if err := s.db.WithContext(ctx).Preload("UserMetainfo").First(&application, id).Error; err != nil {
+	if err := s.db.WithContext(ctx).Preload("UserMetainfo").Where("id = ?", id).First(&application).Error; err != nil {
 		return nil, err
 	}
 	return &application, nil

@@ -17,9 +17,11 @@ RUN --mount=type=cache,target=/go/pkg/mod/ \
 FROM alpine:latest AS final
 
 RUN --mount=type=cache,target=/var/cache/apk \
+    apk update && \
     apk --update add \
     ca-certificates \
     tzdata \
+    curl \
     && \
     update-ca-certificates
 

@@ -1,177 +1,200 @@
-import {
-  Clock,
-  Database,
-  FileText,
-  Key,
-  PaperPlane,
-  Person,
-  Plus,
-  Shield,
-} from "@gravity-ui/icons";
+import { Clock, Key, Person, Plus, Shield, FileText } from "@gravity-ui/icons";
 import {
   Button,
   Card,
   Flex,
   Icon,
-  Label,
-  Modal,
-  Select,
   Tab,
-  Table,
   TabList,
   TabPanel,
   TabProvider,
-  Text,
-  TextArea,
-  TextInput,
 } from "@gravity-ui/uikit";
-import { useState } from "react";
+import useCreateSecretModalStore from "app/store/modals/create-secret";
+import useRequestAccessModal from "app/store/modals/requestAccess";
+import { CardHeader } from "shared/components/CardHeader";
+import ApplicationsTable from "features/components/pages/main/ApplicationsTable";
+import CreateSecretModal from "features/components/pages/main/CreateSecretModal";
+import MasterKeyModal from "features/components/pages/main/MasterKeyModal";
+import RequestAccessModal from "features/components/pages/main/RequestAccessModal";
+import RequestRulesModal from "features/components/pages/main/RequestRulesModal";
+import SecretModal from "features/components/pages/main/SecretModal";
+import RecentlyViewed from "features/components/pages/main/RecentlyViewed";
+import FilterBar, { FilterState } from "features/components/pages/main/FilterBar";
+import SecretsStatistics from "features/components/pages/main/SecretsStatistics";
+import WalletTable from "features/components/pages/main/WalletTable";
+import VaultInitializer from "features/components/VaultInitializer";
+import VaultUnlock from "features/components/VaultUnlock";
+import SyncStatusIndicator from "features/components/SyncStatusIndicator";
+import { useState, useEffect, useMemo } from "react";
+import { setTrayHandlers } from "shared/tauri";
+import useSecretModalStore from "app/store/modals/secret";
+import useRecentlyViewedStore from "app/store/recentlyViewed";
+import useLocalStore from "features/hooks/useLocalStore";
+import useSyncStore from "app/store/sync";
 
-const statusMap = {
-  available: "Доступен",
-  application: "Заявка",
-  deny: "Отклонен",
-};
-
-// ---------- helpers ----------
-const StatusLabel = ({ status }: { status: string }) => (
-  <Label
-    theme={
-      status === "available"
-        ? "success"
-        : status === "deny"
-          ? "danger"
-          : "warning"
-    }
-  >
-    {statusMap[status as keyof typeof statusMap]}
-  </Label>
-);
-
-const CardHeader = ({ icon, title, action }: any) => (
-  <Flex justifyContent="space-between" alignItems="center" width="100%">
-    <Flex alignItems="center" gap="2">
-      <Icon data={icon} />
-      <Text style={{ fontSize: "1.1rem" }}>{title}</Text>
-    </Flex>
-    {action}
-  </Flex>
-);
-
-// ---------- columns ----------
-const applicationsColumns = [
-  { id: "resource", name: "Ресурс", width: 200 },
-  {
-    id: "status",
-    name: "Статус",
-    width: 100,
-    template: (item: any) => <StatusLabel status={item.status.status} />,
-  },
-  { id: "date", name: "Дата", width: 100 },
-];
-
-const walletColumns = [
-  { id: "name", name: "Название", width: 200 },
-  { id: "resource", name: "Ресурс", width: 200 },
-  {
-    id: "status",
-    name: "Статус",
-    width: 100,
-    template: (item: any) => <StatusLabel status={item.status.status} />,
-  },
-  { id: "last_change", name: "Последнее изменение", width: 100 },
-  { id: "expires", name: "Истекает", width: 100 },
-  {
-    id: "actions",
-    name: "Действия",
-    width: 150,
-    template: (item: any) => {
-      switch (item.status.status) {
-        case "available":
-          return (
-            <Button onClick={() => {}} view="action">
-              Использовать
-            </Button>
-          );
-        case "application":
-          return <Label theme="warning">Ожидание</Label>;
-        case "deny":
-          return <Button view="normal">Запросить</Button>;
-      }
-    },
-  },
-];
-
-// ---------- subcomponents ----------
-const WalletTable = () => {
-  const data = [
-    {
-      name: "test",
-      resource: "test",
-      status: { status: "deny" },
-      last_change: "test",
-      expires: "test",
-    },
-    {
-      name: "test",
-      resource: "test",
-      status: { status: "application" },
-      last_change: "test",
-      expires: "test",
-    },
-    {
-      name: "test",
-      resource: "test",
-      status: { status: "available" },
-      last_change: "test",
-      expires: "test",
-    },
-  ];
-
-  return <Table width="max" columns={walletColumns} data={data} />;
-};
-
-const ApplicationsTable = () => {
-  const data = [
-    { resource: "test", status: { status: "available" }, date: "test" },
-    { resource: "test", status: { status: "deny" }, date: "test" },
-    { resource: "test", status: { status: "application" }, date: "test" },
-  ];
-
-  return <Table width="max" columns={applicationsColumns} data={data} />;
-};
-
-const ApplicationForm = () => (
-  <Flex direction="column" gap="4">
-    <CardHeader icon={FileText} title="Создать заявку" />
-    <Flex direction="column" gap="3">
-      <label>
-        <Text>Ресурс</Text>
-        <TextInput placeholder="Выберите ресурс" />
-      </label>
-      <label>
-        <Text>Обоснование</Text>
-        <TextArea rows={5} placeholder="Опишите причину запроса доступа..." />
-      </label>
-      <label>
-        <Text>Срок доступа</Text>
-        <TextInput placeholder="Выберите срок" />
-      </label>
-    </Flex>
-    <Button width="max" view="action">
-      <Icon data={PaperPlane} /> Отправить заявку
-    </Button>
-  </Flex>
-);
-
-// ---------- main ----------
 const Main = () => {
   const [activeTab, setActiveTab] = useState("wallet");
-  const [filter, setFilter] = useState("all");
-  const [open, setOpen] = useState(false);
+  const [filters, setFilters] = useState<FilterState>({
+    searchQuery: '',
+    typeFilter: 'all',
+    expiryFilter: 'all',
+  });
+  const [vaultInitialized, setVaultInitialized] = useState(false);
+  const [vaultUnlocked, setVaultUnlocked] = useState(false);
+  const [masterPassword, setMasterPassword] = useState<string>("");
+  const setOpenCreateSecretModal = useCreateSecretModalStore(
+    (state) => state.setIsOpen,
+  );
+  const setOpenRequestAccessModal = useRequestAccessModal(
+    (state) => state.setIsOpen,
+  );
+  const openSecretModal = useSecretModalStore((state) => state.openModal);
+  const { secrets, refreshSecrets, getSecretById } = useLocalStore();
+  const { recentlyViewed } = useRecentlyViewedStore();
+  const { startSync, startPeriodicSync, stopPeriodicSync, checkConnection } = useSyncStore();
+
+  // Фильтрация секретов
+  const filteredSecrets = useMemo(() => {
+    return secrets.filter(secret => {
+      // Поиск по имени (для SecretListItem описание недоступно в списке)
+      if (filters.searchQuery.trim()) {
+        const query = filters.searchQuery.toLowerCase();
+        const matchesName = secret.name.toLowerCase().includes(query);
+        if (!matchesName) {
+          return false;
+        }
+      }
+
+      // Фильтр по типу
+      if (filters.typeFilter !== 'all' && secret.type !== filters.typeFilter) {
+        return false;
+      }
+
+      // Фильтр по истечению - временно отключен для SecretListItem
+      // Требуется полная загрузка секрета для проверки metadata.expires_at
+      // TODO: добавить expires_at в SecretListItem или загружать полные секреты
+      if (filters.expiryFilter !== 'all') {
+        // Пока показываем все секреты при фильтре по истечению
+        // так как в SecretListItem нет информации о expires_at
+      }
+
+      return true;
+    });
+  }, [secrets, filters]);
+
+  const hasActiveFilters = 
+    filters.searchQuery.trim() !== '' || 
+    filters.typeFilter !== 'all' || 
+    filters.expiryFilter !== 'all';
+
+  // Синхронизация при разблокировке хранилища
+  useEffect(() => {
+    if (vaultUnlocked && masterPassword) {
+      const performSync = async () => {
+        try {
+          console.log("🔄 Запуск синхронизации после разблокировки хранилища...");
+          
+          // Проверяем соединение
+          const isOnline = await checkConnection();
+          if (isOnline) {
+            // Запускаем автоматическую синхронизацию
+            await startSync(masterPassword);
+            
+            // Обновляем список секретов
+            await refreshSecrets();
+            
+            // Запускаем периодическую синхронизацию
+            startPeriodicSync(masterPassword);
+            
+            console.log("✅ Синхронизация завершена успешно");
+          } else {
+            console.warn("⚠️ OpenBao недоступен, работаем в offline режиме");
+          }
+        } catch (error) {
+          console.error("❌ Ошибка синхронизации:", error);
+          // Продолжаем работу в offline режиме
+        }
+      };
+
+      performSync();
+
+      // Останавливаем периодическую синхронизацию при размонтировании
+      return () => {
+        stopPeriodicSync();
+      };
+    }
+  }, [vaultUnlocked, masterPassword, checkConnection, startSync, refreshSecrets, startPeriodicSync, stopPeriodicSync]);
+
+  // Устанавливаем обработчики команд из трея
+  useEffect(() => {
+    setTrayHandlers({
+      openCreateSecretModal: () => setOpenCreateSecretModal(true),
+      lockVault: () => {
+        // Здесь можно добавить логику блокировки хранилища
+        console.log("Блокировка хранилища из трея");
+        stopPeriodicSync();
+        // Можно добавить логику для сброса состояния vaultUnlocked
+        // setVaultUnlocked(false);
+      },
+      clearClipboard: () => {
+        // Очистка буфера обмена
+        if (navigator.clipboard) {
+          navigator.clipboard.writeText("").catch(() => {});
+        }
+      },
+      getVaultStatus: async () => {
+        // Возвращаем статус хранилища
+        return vaultUnlocked ? "Разблокировано" : "Заблокировано";
+      },
+      openSecretFromTray: async (secretId: string) => {
+        // Находим секрет по ID и загружаем его полностью
+        try {
+          const secret = await getSecretById(secretId, masterPassword);
+          if (secret) {
+            // @ts-ignore
+            openSecretModal(secret);
+          } else {
+            console.error("Секрет не найден:", secretId);
+          }
+        } catch (error) {
+          console.error("Ошибка загрузки секрета:", error);
+        }
+      },
+      getRecentlyViewed: () => {
+        // Возвращаем список недавно просмотренных секретов из store
+        return recentlyViewed.map((secret) => ({
+          id: secret.id,
+          name: secret.name,
+          secret_type: secret.type || "generic",
+        }));
+      },
+    });
+  }, [setOpenCreateSecretModal, vaultUnlocked, openSecretModal, secrets, recentlyViewed, stopPeriodicSync, getSecretById, masterPassword]);
+
+  // Обработчик разблокировки с сохранением пароля
+  const handleVaultUnlocked = (password: string) => {
+    // @ts-ignore
+    setMasterPassword(password);
+    setVaultUnlocked(true);
+  };
+
+  // Первый запуск - инициализация хранилища
+  if (!vaultInitialized) {
+    return <VaultInitializer onInitialized={() => setVaultInitialized(true)} />;
+  }
+
+  // Хранилище инициализировано, но не разблокировано
+  if (!vaultUnlocked) {
+    return <VaultUnlock onUnlocked={handleVaultUnlocked} />;
+  }
 
   return (
     <Flex direction="column" spacing={{ px: "4" }}>
+      {/* Индикатор синхронизации */}
+      <Card view="outlined" spacing={{ p: "2", my: "2" }}>
+        <SyncStatusIndicator masterPassword={masterPassword} />
+      </Card>
+
       <TabProvider value={activeTab} onUpdate={setActiveTab}>
         <TabList>
           <Tab value="wallet">
@@ -187,55 +210,66 @@ const Main = () => {
         </TabList>
 
         <TabPanel value="wallet">
-          <Modal open={open} onOpenChange={setOpen}>
-            <Card minWidth={"320px"} spacing={{ p: "4" }}>
-              <Flex>
-                <Flex justifyContent={"space-between"}>
-                  <Flex>
-                    <Icon data={Database} />
-                    <Text>Some modal title</Text>
-                  </Flex>
-                </Flex>
-              </Flex>
-            </Card>
-          </Modal>
+          <SecretModal />
+          <MasterKeyModal />
+          <RequestRulesModal />
+          <RequestAccessModal />
+          <CreateSecretModal />
+
           <Card view="outlined" spacing={{ p: "4", my: "4" }}>
             <Flex direction="column" gap="4">
               <CardHeader
                 icon={Key}
                 title="Кошелек секретов"
                 action={
-                  <Button view="action">
-                    <Icon data={Plus} /> Запросить доступ
+                  <Button
+                    view="action"
+                    onClick={() => setOpenCreateSecretModal(true)}
+                  >
+                    <Icon data={Plus} /> Создать секрет
                   </Button>
                 }
               />
-              <Flex gap="3">
-                <TextInput placeholder="Поиск секретов" />
-                <Select value={[filter]} onUpdate={(arr) => setFilter(arr[0])}>
-                  <option value="all">Все статусы</option>
-                  <option value="available">Доступен</option>
-                  <option value="application">Заявка</option>
-                  <option value="deny">Отклонен</option>
-                </Select>
-              </Flex>
-              <WalletTable />
+              
+              {/* Статистика */}
+              {!hasActiveFilters && <SecretsStatistics secrets={secrets} />}
+              
+              {/* Фильтры и поиск */}
+              <FilterBar
+                filters={filters}
+                onFiltersChange={setFilters}
+                resultsCount={filteredSecrets.length}
+                totalCount={secrets.length}
+              />
+              
+              {/* Недавно просмотренные (только если нет фильтров) */}
+              {!hasActiveFilters && <RecentlyViewed />}
+              
+              {/* Таблица с секретами */}
+              <WalletTable secrets={filteredSecrets} />
             </Flex>
           </Card>
         </TabPanel>
 
         <TabPanel value="applications">
-          <Flex gap="4" spacing={{ my: "4" }}>
-            <Card spacing={{ p: "4" }} width="50%">
-              <ApplicationForm />
-            </Card>
-            <Card spacing={{ p: "4" }} width="50%">
-              <Flex direction="column" gap="4">
-                <CardHeader icon={Clock} title="История заявок" />
-                <ApplicationsTable />
-              </Flex>
-            </Card>
-          </Flex>
+          <Card view="outlined" spacing={{ p: "4", my: "4" }}>
+            <Flex direction="column" gap="4">
+              <CardHeader
+                icon={FileText}
+                title="Мои заявки на доступ"
+                action={
+                  <Button
+                    view="action"
+                    onClick={() => setOpenRequestAccessModal(true)}
+                  >
+                    <Icon data={Plus} /> Создать заявку
+                  </Button>
+                }
+              />
+              
+              <ApplicationsTable />
+            </Flex>
+          </Card>
         </TabPanel>
       </TabProvider>
     </Flex>

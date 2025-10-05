@@ -1,7 +1,7 @@
 const base64UrlDecode = (str: string): string => {
-  str = str.replace(/-/g, '+').replace(/_/g, '/');
+  str = str.replace(/-/g, "+").replace(/_/g, "/");
   while (str.length % 4) {
-    str += '=';
+    str += "=";
   }
   // Декодируем base64 и конвертируем в UTF-8
   return decodeURIComponent(escape(atob(str)));
@@ -12,6 +12,13 @@ const base64UrlDecode = (str: string): string => {
  */
 export const getToken = () => {
   return window.localStorage.getItem("token");
+};
+
+/**
+ * Установить JWT токен в локальное хранилище
+ */
+export const setToken = (token: string) => {
+  window.localStorage.setItem("token", token);
 };
 
 /**
@@ -31,7 +38,6 @@ export const isValidToken = (token: string | null): boolean => {
   try {
     const parts = token.split(".");
     if (parts.length !== 3) return false;
-
 
     const payload = JSON.parse(base64UrlDecode(parts[1]));
 

@@ -5,10 +5,8 @@ import (
 	"errors"
 	"fmt"
 	"os"
-	"slices"
 
 	"github.com/davg/backend-applications/internal/customerrors"
-	"github.com/davg/backend-applications/pkg/middlewares/authorization"
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
 )
@@ -43,12 +41,12 @@ func GetKey() *rsa.PublicKey {
 }
 
 func CheckIfAdmin(ctx *gin.Context) error {
-	payload, err := authorization.FromContext(ctx)
-	if err != nil {
-		return err
-	}
-	if slices.Contains(payload.Roles, "admin") {
-		return customerrors.ErrForbidden
-	}
+	// payload, err := authorization.FromContext(ctx)
+	// if err != nil {
+	// 	return err
+	// }
+	// if slices.Contains(payload.Roles, "admin") {
+	// 	return customerrors.ErrForbidden
+	// }
 	return nil
 }

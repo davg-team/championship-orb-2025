@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"fmt"
 	"log/slog"
 
 	"github.com/davg/backend-applications/internal/customerrors"
@@ -83,6 +84,7 @@ func (s *ApplicationsService) CreateApplication(
 		},
 		ApplicationStatus: models.ApplicationStatusPending,
 		Ttl:               application.Ttl,
+		Attachments:       application.Attachments,
 		UserRequest:       application.UserRequest,
 		UserComment:       application.UserComment,
 	}
@@ -93,14 +95,26 @@ func (s *ApplicationsService) CreateApplication(
 		return "", err
 	}
 
+	subject := "Новая заявка от пользователя " + tokenPayload.Name
+	body := fmt.Sprintf("Пользователь %s (%s) создал заявку с комментарием: %s", tokenPayload.Name, tokenPayload.Email, application.UserComment)
+	err := SendEmail(
+		"admin", subject, body,
+	)
+
+	if err != nil {
+		err = customerrors.New(err.Error(), customerrors.ErrBadRequest)
+		log.Error("error sending email", "error", err)
+		return "", err
+	}
+
 	return applicationID, nil
 }
 
-// TODO: rewrite for policies
-func (s *ApplicationsService) UpdateApplicationStatus(
+// TODO: send notification
+func (s *ApplicationsService) ApproveApplication(
 	ctx context.Context,
 	applicationID string,
-	metainfo *requests.UpdateApplicationStatusRequest,
+	metainfo *requests.ApproveApplicationRequest,
 ) error {
 	const op = "UpdateApplicationStatus"
 
@@ -114,12 +128,63 @@ func (s *ApplicationsService) UpdateApplicationStatus(
 		return err
 	}
 
-	application.ApplicationStatus = metainfo.Status
+	application.ApplicationStatus = models.ApplicationStatusApproved
 	application.AdminComment = metainfo.AdminComment
+
+	err = UpdateUserPolicy(ctx, metainfo, application.UserMetainfo.ID)
+	if err != nil {
+		err = customerrors.New(err.Error(), customerrors.ErrBadRequest)
+		log.Error("error updating user policy", "error", err)
+		return err
+	}
 
 	if err := s.storage.UpdateApplication(ctx, application); err != nil {
 		err = customerrors.New(err.Error(), customerrors.ErrBadRequest)
 		log.Error("error updating application", "error", err)
+		return err
+	}
+
+	err = SendEmail(
+		application.UserMetainfo.Email, "Заявка одобрена", "Ваша заявка с ID "+applicationID+" одобрена",
+	)
+	if err != nil {
+		err = customerrors.New(err.Error(), customerrors.ErrBadRequest)
+		log.Error("error sending email", "error", err)
+		return err
+	}
+
+	return nil
+}
+
+// TODO: send notification
+func (s *ApplicationsService) DenyApplication(ctx context.Context, applicationID, adminComment string) error {
+	const op = "DenyApplication"
+
+	log := s.log.With("op", op)
+	log.Info("denying application")
+
+	application, err := s.storage.Application(ctx, applicationID)
+	if err != nil {
+		err = customerrors.New(err.Error(), customerrors.ErrBadRequest)
+		log.Error("error getting application", "error", err)
+		return err
+	}
+
+	application.ApplicationStatus = models.ApplicationStatusDenied
+	application.AdminComment = adminComment
+
+	if err := s.storage.UpdateApplication(ctx, application); err != nil {
+		err = customerrors.New(err.Error(), customerrors.ErrBadRequest)
+		log.Error("error updating application", "error", err)
+		return err
+	}
+
+	err = SendEmail(
+		application.UserMetainfo.Email, "Заявка отклонена", "Ваша заявка c ID "+applicationID+" отклонена",
+	)
+	if err != nil {
+		err = customerrors.New(err.Error(), customerrors.ErrBadRequest)
+		log.Error("error sending email", "error", err)
 		return err
 	}
 

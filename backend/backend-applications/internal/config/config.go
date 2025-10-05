@@ -14,10 +14,23 @@ var cfg config
 type config struct {
 	Server  serverConfig
 	Storage storageConfig
+
+	Notifications notificationsConfig
+
+	OpenBao openbaoConfig
 }
 
 type serverConfig struct {
 	Port string `env:"PORT" envDefault:"8080"`
+}
+
+type notificationsConfig struct {
+	URL string `env:"NOTIFICATIONS_URL" envDefault:"http://localhost:8081"`
+}
+
+type openbaoConfig struct {
+	URL       string `env:"OPENBAO_URL" envDefault:"http://localhost:8200/v1"`
+	RootToken string `env:"OPENBAO_ROOT_TOKEN" envDefault:"root_token"`
 }
 
 type storageConfig struct {

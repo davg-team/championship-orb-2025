@@ -1,0 +1,19 @@
+# Файлы с ключами OpenBao - НЕ КОММИТИТЬ!
+.openbao-keys
+*.key
+unseal-keys.txt
+unseal-keys.json
+root-token.txt
+
+# Бэкапы ключей
+backups/
+*.backup
+*.bak
+
+# Логи
+logs/
+*.log
+
+# Локальные данные (если используете bind mount)
+data/
+keys/

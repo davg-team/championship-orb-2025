@@ -3,7 +3,9 @@ package service
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"log/slog"
+	"sync"
 
 	"github.com/davg/backend-notifications/internal/domain/models"
 	"github.com/davg/backend-notifications/internal/domain/request"
@@ -181,4 +183,128 @@ func (s *Service) GetNotificationsByID(ctx context.Context, user_id string) ([]m
 
 	s.log.Info("Notification retrieved", slog.String("op", op), slog.String("user_id", user_id))
 	return newNotifications, nil
+}
+
+func (s *Service) SendTelegramMessage(ChatID int, Title, Body string) error {
+	const op = "service.SendTelegramMessage"
+	s.log.Info("Send Telegram message", slog.String("op", op), slog.Int("chat_id", ChatID))
+
+	if err := SendTelegramMessage(ChatID, Title, Body); err != nil {
+		s.log.Error("Failed to send Telegram message", op, err)
+		return err
+	}
+
+	s.log.Info("Telegram message sent", slog.String("op", op), slog.Int("chat_id", ChatID))
+	return nil
+}
+
+func (s *Service) SmartSend(ctx context.Context, smart_request request.SmartSend) error {
+	const op = "service.SmartSend"
+	s.log.Info("Smart send notifications", slog.String("op", op))
+
+	token, err := GetAuthToken()
+	if err != nil {
+		s.log.Error("Failed to get auth token", op, err)
+		return err
+	}
+
+	var wg sync.WaitGroup
+	var mu sync.Mutex
+	var errs []error
+
+	for _, userID := range smart_request.UserIDs {
+		user, err := GetUser(token, userID)
+		if err != nil {
+			s.log.Error("Failed to get user", op, err)
+			continue
+		}
+
+		attrs, ok := user["attributes"].(map[string]interface{})
+		if !ok {
+			s.log.Error("Invalid user attributes format", op, nil, slog.String("user_id", userID))
+			continue
+		}
+
+		channels, ok := attrs["notification_channels"].([]interface{})
+		if !ok {
+			s.log.Error("notification_channels missing or invalid", op, nil, slog.String("user_id", userID))
+			continue
+		}
+
+		for _, ch := range channels {
+			channel, _ := ch.(string)
+			wg.Add(1)
+
+			go func(channel string) {
+				defer wg.Done()
+
+				switch channel {
+				case "email":
+					err := s.SendMessage(ctx, request.SendSMTP{
+						Subject: smart_request.Title,
+						Body:    smart_request.Body,
+					}, user["email"].(string))
+					if err != nil {
+						s.log.Error("Failed to send email", op, err, slog.String("user_id", userID))
+						mu.Lock()
+						errs = append(errs, err)
+						mu.Unlock()
+					}
+
+				case "websocket":
+					_, err := s.CreateNotification(ctx, request.CreateNotification{
+						UserID:  userID,
+						Subject: smart_request.Title,
+						Body:    smart_request.Body,
+						Custom:  smart_request.Custom,
+					})
+					if err != nil {
+						s.log.Error("Failed to create websocket notification", op, err, slog.String("user_id", userID))
+						mu.Lock()
+						errs = append(errs, err)
+						mu.Unlock()
+					}
+
+				case "telegram":
+					ids, ok := attrs["telegram_id"].([]interface{})
+					if !ok || len(ids) == 0 {
+						s.log.Error("Telegram ID not found", op, nil, slog.String("user_id", userID))
+						return
+					}
+
+					chatIDStr, ok := ids[0].(string)
+					if !ok || chatIDStr == "" {
+						s.log.Error("Invalid Telegram ID format", op, nil, slog.String("user_id", userID))
+						return
+					}
+
+					var chatID int
+					if _, err := fmt.Sscanf(chatIDStr, "%d", &chatID); err != nil {
+						s.log.Error("Invalid Telegram chat ID format", op, err, slog.String("user_id", userID), slog.String("chat_id", chatIDStr))
+						return
+					}
+
+					err := s.SendTelegramMessage(chatID, smart_request.Title, smart_request.Body)
+					if err != nil {
+						s.log.Error("Failed to send Telegram message", op, err, slog.String("user_id", userID), slog.Int("chat_id", chatID))
+						mu.Lock()
+						errs = append(errs, err)
+						mu.Unlock()
+					}
+
+				default:
+					s.log.Warn("Unknown notification channel", slog.String("channel", channel), slog.String("user_id", userID))
+				}
+			}(channel)
+		}
+	}
+
+	wg.Wait()
+	s.log.Info("Smart send notifications completed", slog.String("op", op))
+
+	if len(errs) > 0 {
+		return fmt.Errorf("%s: some notifications failed: %v", op, errs)
+	}
+
+	return nil
 }

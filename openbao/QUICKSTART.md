@@ -28,7 +28,7 @@ docker-compose up -d
 docker-compose up -d openbao
 
 # 2. Инициализировать хранилище
-docker exec -it openbao bao operator init
+docker exec -it openbao bao -address http://127.0.0.1:8200 operator init
 
 # ⚠️ ВАЖНО: Сохраните ВСЕ ключи и Root Token!
 ```
@@ -37,9 +37,9 @@ docker exec -it openbao bao operator init
 
 ```bash
 # Ручная разблокировка (нужны 3 из 5 ключей)
-docker exec -it openbao bao operator unseal <key1>
-docker exec -it openbao bao operator unseal <key2>
-docker exec -it openbao bao operator unseal <key3>
+docker exec -it openbao bao -address http://127.0.0.1:8200 operator unseal <key1>
+docker exec -it openbao bao -address http://127.0.0.1:8200 operator unseal <key2>
+docker exec -it openbao bao -address http://127.0.0.1:8200 operator unseal <key3>
 
 # ИЛИ использовать скрипт (после настройки .openbao-keys)
 bash openbao/unseal.sh
@@ -60,7 +60,7 @@ bash openbao/unseal.sh
 ## ✅ Проверка статуса
 
 ```bash
-docker exec -it openbao bao status
+docker exec -it openbao bao -address http://127.0.0.1:8200 status
 
 # Если "Sealed: false" - всё ОК!
 ```
